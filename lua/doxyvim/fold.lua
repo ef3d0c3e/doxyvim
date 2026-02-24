@@ -28,7 +28,7 @@ local function parse_groups(bufnr)
 		if defgroup and has_open then
 			-- contained: /** @defgroup Foo @{ */
 			local name    = text:match("@defgroup%s+(%S+)")
-			local desc    = text:match("@defgroup%s+%S+%s?([^%s\n]+)")
+			local desc    = text:match("@defgroup%s+%S+[ \t]+([^\n]+)")
 			local ingroup = text:match("@ingroup%s+(%S+)")
 			table.insert(stack, { start = start_row, name = name, desc = desc or "", ingroup = ingroup })
 			pending = nil
