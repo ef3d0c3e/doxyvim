@@ -2,10 +2,8 @@
 
 Doxyvim provides highlights, completion and folds when working with doxygen.
 
-<p style="text-align:center;">
 ![Doxyvim showcase](./doc/showcase.png)
 **Doxyvim in action**
-</p>
 
 # Installation
 
