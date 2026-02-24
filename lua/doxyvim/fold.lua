@@ -113,12 +113,10 @@ local function refresh(bufnr)
 	end)
 end
 
-function M.setup(config)
+function M.setup(ft_pattern, config)
 	config = config or {}
 	if config.enable ~= true then return end
 	M.config = config
-
-	local ft_pattern = { "*.c", "*.cpp", "*.h", "*.hpp" }
 
 	vim.api.nvim_create_autocmd({ "BufReadPost", "BufWinEnter" }, {
 		pattern = ft_pattern,
@@ -133,8 +131,10 @@ function M.setup(config)
 	})
 
 	-- Only refresh when leaving insert mode or after a normal-mode change
+	local mode_changed_pattern = { "i:n", "i:v", "i:*" }
+	vim.tbl_extend("force", mode_changed_pattern, ft_pattern)
 	vim.api.nvim_create_autocmd("ModeChanged", {
-		pattern = { "i:n", "i:v", "i:*" }, -- leaving insert mode
+		pattern = mode_changed_pattern,
 		callback = function(ev)
 			refresh(ev.buf)
 		end,
