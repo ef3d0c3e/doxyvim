@@ -156,10 +156,8 @@ function M.setup(ft_pattern, config)
 	})
 
 	-- Only refresh when leaving insert mode or after a normal-mode change
-	local mode_changed_pattern = { "i:n", "i:v", "i:*" }
-	vim.tbl_extend("force", mode_changed_pattern, ft_pattern)
 	vim.api.nvim_create_autocmd("ModeChanged", {
-		pattern = mode_changed_pattern,
+		pattern = { "i:n", "i:v" },
 		callback = function(ev)
 			local ft = vim.bo[ev.buf].filetype
 			if not ft or not ft_pattern[ft] then
@@ -169,7 +167,7 @@ function M.setup(ft_pattern, config)
 		end,
 	})
 
-	vim.api.nvim_create_autocmd({ "BufWritePost", "TextChanged" }, {
+	vim.api.nvim_create_autocmd({"BufWritePost", "TextChanged"}, {
 		callback = function(ev)
 			local ft = vim.bo[ev.buf].filetype
 			if not ft or not ft_pattern[ft] then
@@ -178,6 +176,7 @@ function M.setup(ft_pattern, config)
 			refresh(ev.buf)
 		end,
 	})
+
 end
 
 return M

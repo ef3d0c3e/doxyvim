@@ -18,7 +18,6 @@ local function candidates(trigger, input)
 	local text_kind = vim.lsp.protocol.CompletionItemKind.Text
 
 	local cands = {}
-	-- FIXME: Off by one bug when inserting at the end of the line
 	for i, entry in ipairs(comp.doxyvim_completions(input)) do
 		cands[i] = {
 			label = trigger .. entry,
