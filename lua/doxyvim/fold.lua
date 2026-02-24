@@ -104,6 +104,25 @@ function _G.DoxyvimFoldText()
 	end
 end
 
+local function insert_inaly_hints(bufnr)
+	if M.config.inlay_hints.enable ~= true or not M.groups[bufnr] then
+		return
+	end
+	if not M.inlay_hl then
+		vim.api.nvim_set_hl(0, "DoxyvimInlayHint", M.config.inlay_hints.style)
+		M.inlay_hl = true
+	end
+	vim.api.nvim_buf_clear_namespace(bufnr, M.ns, 0, -1)
+
+	for _, group in pairs(M.groups[bufnr]) do
+		vim.api.nvim_buf_set_extmark(bufnr, M.ns, group["end"] - 1, 0, {
+			virt_text = { { string.format(M.config.inlay_hints.format, group.name), "DoxyvimInlayHint" } },
+			virt_text_pos = "eol",
+			hl_mode = "combine"
+		})
+	end
+end
+
 local function refresh(bufnr)
 	bufnr = bufnr or vim.api.nvim_get_current_buf()
 	parse_groups(bufnr)
@@ -111,12 +130,14 @@ local function refresh(bufnr)
 	vim.api.nvim_buf_call(bufnr, function()
 		vim.cmd("normal! zx")
 	end)
+	insert_inaly_hints(bufnr)
 end
 
 function M.setup(ft_pattern, config)
 	config = config or {}
 	if config.enable ~= true then return end
 	M.config = config
+	M.ns = vim.api.nvim_create_namespace("doxyvim_ionlay_hints")
 
 	vim.api.nvim_create_autocmd({ "BufReadPost", "BufWinEnter" }, {
 		pattern = ft_pattern,
@@ -127,6 +148,7 @@ function M.setup(ft_pattern, config)
 			vim.wo.foldtext   = "v:lua.DoxyvimFoldText()"
 			vim.wo.foldlevel  = 0
 			parse_groups(bufnr)
+			insert_inaly_hints(bufnr)
 		end,
 	})
 

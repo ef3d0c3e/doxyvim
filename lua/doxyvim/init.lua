@@ -5,6 +5,11 @@ local M = {
 			enable = true,
 			format_orphan = " 󰈙 %s: %s",
 			format_child = " 󰈙 %s ❭ %s: %s",
+			inlay_hints = {
+				enable = true,
+				style = { fg = "#5fafaf", bold = true },
+				format = "󰭸 %s",
+			}
 		},
 		highlight = {
 			enable = true,
@@ -72,7 +77,7 @@ local M = {
 					return { fg = "#7faf9f", bold = true, italic = true }
 				elseif tag == "return" then
 					return { fg = "#dfaf9f", bold = true, italic = true }
-				-- Special
+					-- Special
 				elseif tag == "note" then
 					return { fg = "#5fafff", underline = true }
 				elseif tag == "todo" then
