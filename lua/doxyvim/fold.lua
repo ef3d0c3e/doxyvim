@@ -169,8 +169,7 @@ function M.setup(ft_pattern, config)
 		end,
 	})
 
-	-- Also refresh on file write, in case the user saves from command mode
-	vim.api.nvim_create_autocmd("BufWritePost", {
+	vim.api.nvim_create_autocmd({ "BufWritePost", "TextChanged" }, {
 		callback = function(ev)
 			local ft = vim.bo[ev.buf].filetype
 			if not ft or not ft_pattern[ft] then
