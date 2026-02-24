@@ -7,8 +7,11 @@ local function get_hl(tag)
 	if hl then return hl end
 	hl = M.config.hl(tag)
 	if hl then
-		if tag == "{" then tag = "LBRACE"
-		elseif tag == "}" then tag = "RBRACE" end
+		if tag == "{" then
+			tag = "LBRACE"
+		elseif tag == "}" then
+			tag = "RBRACE"
+		end
 		local name = "DoxyvimTag_" .. tag
 		vim.api.nvim_set_hl(0, name, hl)
 		M.hl[tag] = name
@@ -22,7 +25,9 @@ local function highlight_tags()
 	vim.api.nvim_buf_clear_namespace(bufnr, M.ns or 0, 0, -1)
 
 	local lang = vim.bo[bufnr].filetype
-	local parser = ts.get_parser(bufnr, lang)
+	local parser = ts.get_parser(bufnr)
+
+
 	if not parser then return end
 	local tree = parser:parse()[1]
 	local root = tree:root()
@@ -39,14 +44,14 @@ local function highlight_tags()
 
 		for line in text:gmatch("([^\n]*)\n?") do
 			-- Search for all @tags in this line
-			for s, tag, e in line:gmatch("()@(%S+)()") do
+			for s, tag, e in line:gmatch("()[@\\](%S+)()") do
 				local tag_line      = start_row + line_offset
 				local tag_start_col = (s - 1) + (line_offset == 0 and col_offset or 0)
 				local tag_end_col   = (e - 1) + (line_offset == 0 and col_offset or 0)
 				if tag:match("code") then
 					tag = "code"
 				end
-				local hl            = get_hl(tag)
+				local hl = get_hl(tag)
 				vim.api.nvim_buf_set_extmark(bufnr, M.ns, tag_line, tag_start_col, {
 					end_row = tag_line,
 					end_col = tag_end_col,
@@ -65,9 +70,14 @@ function M.setup(ft_pattern, config)
 
 	vim.api.nvim_create_augroup("DoxygenCommentTag", { clear = true })
 	vim.api.nvim_create_autocmd({ "BufEnter", "TextChanged", "InsertLeave", "BufWinEnter" }, {
-		pattern = ft_pattern,
 		group = "DoxygenCommentTag",
-		callback = highlight_tags
+		callback = function(ev)
+			local ft = vim.bo[ev.buf].filetype
+			if not ft or not ft_pattern[ft] then
+				return
+			end
+			highlight_tags()
+		end
 	})
 end
 

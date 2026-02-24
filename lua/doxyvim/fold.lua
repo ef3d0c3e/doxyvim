@@ -6,7 +6,7 @@ local M = {
 local function parse_groups(bufnr)
 	bufnr = bufnr or vim.api.nvim_get_current_buf()
 	local lang = vim.bo[bufnr].filetype
-	local parser = ts.get_parser(bufnr, lang)
+	local parser = ts.get_parser(bufnr)
 	if not parser then return end
 	local tree = parser:parse()[1]
 	local root = tree:root()
@@ -21,22 +21,22 @@ local function parse_groups(bufnr)
 		local start_row = node:range() + 1 -- 1-based
 		local end_row   = select(3, node:range()) + 1
 
-		local defgroup  = text:match("@defgroup")
-		local has_open  = text:match("@{")
-		local has_close = text:match("@}")
+		local defgroup  = text:match("[@\\]defgroup")
+		local has_open  = text:match("[@\\]{")
+		local has_close = text:match("[@\\]}")
 
 		if defgroup and has_open then
 			-- contained: /** @defgroup Foo @{ */
-			local name    = text:match("@defgroup%s+(%S+)")
-			local desc    = text:match("@defgroup%s+%S+[ \t]+([^\n]+)")
-			local ingroup = text:match("@ingroup%s+(%S+)")
+			local name    = text:match("[@\\]defgroup%s+(%S+)")
+			local desc    = text:match("[@\\]defgroup%s+%S+[ \t]+([^\n]+)")
+			local ingroup = text:match("[@\\]ingroup%s+(%S+)")
 			table.insert(stack, { start = start_row, name = name, desc = desc or "", ingroup = ingroup })
 			pending = nil
 		elseif defgroup then
 			-- split style: first comment has @defgroup, next has @{
-			local name    = text:match("@defgroup%s+(%S+)")
-			local desc    = text:match("@defgroup%s+%S+%s+([^%s\n]+)")
-			local ingroup = text:match("@ingroup%s+(%S+)")
+				local name    = text:match("[@\\]defgroup%s+(%S+)")
+				local desc    = text:match("[@\\]defgroup%s+%S+%s+([^%s\n]+)")
+				local ingroup = text:match("[@\\]ingroup%s+(%S+)")
 			pending       = { start = start_row, name = name, desc = desc or "", ingroup = ingroup }
 		elseif has_open then
 			if pending then
@@ -140,9 +140,12 @@ function M.setup(ft_pattern, config)
 	M.ns = vim.api.nvim_create_namespace("doxyvim_ionlay_hints")
 
 	vim.api.nvim_create_autocmd({ "BufReadPost", "BufWinEnter" }, {
-		pattern = ft_pattern,
 		callback = function(ev)
 			local bufnr       = ev.buf
+			local ft = vim.bo[bufnr].filetype
+			if not ft or not ft_pattern[ft] then
+				return
+			end
 			vim.wo.foldmethod = "expr" -- use opt_local equivalents
 			vim.wo.foldexpr   = "v:lua.DoxyvimFoldExpr()"
 			vim.wo.foldtext   = "v:lua.DoxyvimFoldText()"
@@ -158,14 +161,21 @@ function M.setup(ft_pattern, config)
 	vim.api.nvim_create_autocmd("ModeChanged", {
 		pattern = mode_changed_pattern,
 		callback = function(ev)
+			local ft = vim.bo[ev.buf].filetype
+			if not ft or not ft_pattern[ft] then
+				return
+			end
 			refresh(ev.buf)
 		end,
 	})
 
 	-- Also refresh on file write, in case the user saves from command mode
 	vim.api.nvim_create_autocmd("BufWritePost", {
-		pattern = ft_pattern,
 		callback = function(ev)
+			local ft = vim.bo[ev.buf].filetype
+			if not ft or not ft_pattern[ft] then
+				return
+			end
 			refresh(ev.buf)
 		end,
 	})

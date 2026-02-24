@@ -1,6 +1,6 @@
 local M = {
 	config = {
-		filetypes = { "*.c", "*.cpp", "*.h", "*.hpp" },
+		filetypes = { ["c"] = true, ["cpp"] = true },
 		fold = {
 			enable = true,
 			format_orphan = " 󰈙 %s: %s",
@@ -89,6 +89,61 @@ local M = {
 				end
 				return nil
 			end
+		},
+		completion = {
+			enable = true,
+			keywords = {
+				"brief",
+				"file",
+				"author",
+				"version",
+				"see",
+				"since",
+				"details",
+				"throws",
+				"exception",
+				"deprecated",
+				"example",
+				"test",
+				"def",
+				"typedef",
+				"var",
+				"struct",
+				"class",
+				"enum",
+				"interface",
+				"package",
+				"namespace",
+				"fn",
+				"name",
+				"code",
+				"endcode",
+				"sa",
+				"ref",
+				"link",
+				"endlink",
+				"copydoc",
+				"docRoot",
+				"inheritDoc",
+				"internal",
+				"invariant",
+				"mainpage",
+				"page",
+				"section",
+				"subsection",
+				"threadsafe",
+				"nosubgrouping",
+				"p",
+				"param",
+				"return",
+				"note",
+				"todo",
+				"warning",
+				"bug",
+				"ingroup",
+				"defgroup",
+				"addtogroup",
+			},
 		}
 	}
 }
@@ -101,6 +156,9 @@ function M.setup(opts)
 
 	M.hl = require("doxyvim.highlight")
 	M.hl.setup(M.config.filetypes, M.config.highlight)
+
+	M.completion = require("doxyvim.completion")
+	M.completion.setup(M.config.filetypes, M.config.completion)
 end
 
 return M
