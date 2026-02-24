@@ -2,7 +2,7 @@ local M = {
 
 }
 
--- returns list of completions for the current filter
+-- return list of completions for the current filter
 function M.doxyvim_completions(filter)
 	if filter and filter ~= "" then
 		local filtered = {}
@@ -19,26 +19,18 @@ end
 
 -- Detect if cursor is in a comment
 function M.in_comment()
-	local ts = vim.treesitter
-
-	-- Get the current buffer parser
-	local parser = ts.get_parser(0)
-	if not parser then return end
-
-	local tree = parser:parse()[1]
-	local root = tree:root()
-
-	-- Get cursor position
-	local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-	row = row - 1 -- Lua index starts at 0
-
-	-- Find the named node at cursor
-	local node = root:named_descendant_for_range(row, col, row, col)
-	while node do
-		if node:type() == "comment" then
-			return true
+	local row = vim.api.nvim_win_get_cursor(0)[1]
+	if row > 0 then
+		row = row - 1
+	end
+	local line = vim.api.nvim_get_current_line()
+	for c = 0, #line - 1 do
+		local captures = vim.treesitter.get_captures_at_pos(0, row, c)
+		for _, capture in ipairs(captures) do
+			if capture.capture:find("comment") then
+				return true
+			end
 		end
-		node = node:parent()
 	end
 	return false
 end
